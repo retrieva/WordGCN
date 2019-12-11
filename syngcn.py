@@ -494,21 +494,13 @@ class SynGCN(Model):
         -------
         """
         embed_matrix, context_matrix = sess.run([self.embed_matrix, self.context_matrix])
-        voc2vec = {wrd: embed_matrix[wid] for wrd, wid in self.voc2id.items()}
-        embedding = Embedding.from_dict(voc2vec)
-        results = evaluate_on_all(embedding)
-        results = {key: round(val[0], 4) for key, val in results.items()}
-        curr_int = np.mean(list(results.values()))
-        self.logger.info('Current Score: {}'.format(curr_int))
 
-        if curr_int > self.best_int_avg:
-            self.logger.info("Saving embedding matrix")
-            f = open('{}/{}'.format(self.p.emb_dir, self.p.name), 'w')
-            for id, wrd in self.id2voc.items():
-                f.write('{} {}\n'.format(wrd, ' '.join([str(round(v, 6)) for v in embed_matrix[id].tolist()])))
+        self.logger.info("Saving embedding matrix")
+        f = open('{}/{}'.format(self.p.emb_dir, self.p.name), 'w')
+        for id, wrd in self.id2voc.items():
+            f.write('{} {}\n'.format(wrd, ' '.join([str(round(v, 6)) for v in embed_matrix[id].tolist()])))
 
-            self.saver.save(sess=sess, save_path=self.save_path)
-            self.best_int_avg = curr_int
+        self.saver.save(sess=sess, save_path=self.save_path)
 
     def run_epoch(self, sess, epoch, shuffle=True):
         """
@@ -570,7 +562,6 @@ class SynGCN(Model):
         for epoch in range(self.p.max_epochs):
             self.logger.info('Epoch: {}'.format(epoch))
             train_loss = self.run_epoch(sess, epoch)
-
             self.checkpoint(epoch, sess)
             self.logger.info('[Epoch {}]: Training Loss: {:.5}, Best Loss: {:.5}\n'.format(epoch, train_loss,
                                                                                            self.best_int_avg))
