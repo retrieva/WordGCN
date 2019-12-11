@@ -568,7 +568,6 @@ class SynGCN(Model):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description='WORD GCN')
 
     parser.add_argument('-gpu', dest="gpu", default='0', help='GPU to use')
