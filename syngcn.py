@@ -63,15 +63,15 @@ class SynGCN(Model):
         """
         self.logger.info("Loading data")
 
-        self.voc2id = hp.read_mappings('./data/voc2id.txt')
+        self.voc2id = hp.read_mappings(f'{self.p.lang_dir}/voc2id.txt')
         self.voc2id = {k: int(v) for k, v in self.voc2id.items()}
-        self.id2freq = hp.read_mappings('./data/id2freq.txt')
+        self.id2freq = hp.read_mappings(f'{self.p.lang_dir}/id2freq.txt')
         self.id2freq = {int(k): int(v) for k, v in self.id2freq.items()}
         self.id2voc = {v: k for k, v in self.voc2id.items()}
         self.vocab_size = len(self.voc2id)
         self.wrd_list = [self.id2voc[i] for i in range(self.vocab_size)]
 
-        self.de2id = hp.read_mappings('./data/de2id.txt')
+        self.de2id = hp.read_mappings(f'{self.p.lang_dir}/de2id.txt')
         self.de2id = {k: int(v) for k, v in self.de2id.items()}
         self.num_deLabel = len(self.de2id)
 
@@ -453,9 +453,9 @@ class SynGCN(Model):
         self.p = params
 
         if not os.path.isdir(self.p.log_dir):
-            os.system('mkdir {}'.format(self.p.log_dir))
+            os.mkdir(self.p.log_dir)
         if not os.path.isdir(self.p.emb_dir):
-            os.system('mkdir {}'.format(self.p.emb_dir))
+            os.mkdir(self.p.emb_dir)
 
         self.logger = hp.get_logger(self.p.name, self.p.log_dir, self.p.config_dir)
 
@@ -570,6 +570,8 @@ class SynGCN(Model):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='WORD GCN')
 
+    parser.add_argument('-langdir', dest='lang_dir', default='./data', required=True,
+                        help='language data like voc2id and id corpus')
     parser.add_argument('-gpu', dest="gpu", default='0', help='GPU to use')
     parser.add_argument('-name', dest="name", default='test_run', help='Name of the run')
     parser.add_argument('-embed', dest="embed_loc", default=None, help='Embedding for initialization')

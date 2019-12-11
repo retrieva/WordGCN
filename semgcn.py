@@ -34,7 +34,7 @@ class SemGCN(Model):
         num_batch = 0
 
         for semantic in self.semantic_list:
-            for line in open('./{}/{}.txt'.format(self.p.semdir, semantic), encoding='utf-8', errors='ignore'):
+            for line in open('{}/{}.txt'.format(self.p.sem_dir, semantic), encoding='utf-8', errors='ignore'):
                 ele = {}
                 ele['Words'] = [self.voc2id[wrd.lower()] for wrd in line.strip().split() if wrd.lower() in self.voc2id]
                 random.shuffle(ele['Words'])
@@ -106,10 +106,10 @@ class SemGCN(Model):
         """
         self.logger.info("Loading data")
 
-        self.voc2id = hp.read_mappings('./data/voc2id.txt')
+        self.voc2id = hp.read_mappings(f'{self.p.lang_dir}/voc2id.txt')
         self.voc2id = {k: int(v) for k, v in self.voc2id.items()}
         self.id2voc = {v: k for k, v in self.voc2id.items()}
-        self.id2freq = hp.read_mappings('./data/id2freq.txt')
+        self.id2freq = hp.read_mappings(f'{self.p.lang_dir}/id2freq.txt')
         self.id2freq = {int(k): int(v) for k, v in self.id2freq.items()}
         self.vocab_size = len(self.voc2id)
 
@@ -124,8 +124,12 @@ class SemGCN(Model):
         if self.p.semantic != 'none':
             if self.p.semantic == 'all':
                 self.semantic_list = ['synonyms', 'antonyms', 'hyponyms', 'hypernyms']
+            elif os.path.isfile(self.p.semantic):
+                with open(self.p.semantic, 'r', encoding='utf-8', errors='ignore') as f:
+                    for line in f:
+                        self.semantic_list.append(line.strip())
             else:
-                self.semantic_list = [self.p.semantic]
+                self.semantic_list.extend(self.p.semantic.split(','))
 
         self.lbl2id = {}
         self.num_labels = 0
@@ -482,9 +486,9 @@ class SemGCN(Model):
         """
         self.p = params
         if not os.path.isdir(self.p.log_dir):
-            os.system('mkdir {}'.format(self.p.log_dir))
+            os.mkdir(self.p.log_dir)
         if not os.path.isdir(self.p.emb_dir):
-            os.system('mkdir {}'.format(self.p.emb_dir))
+            os.mkdir(self.p.emb_dir)
         self.logger = hp.get_logger(self.p.name, self.p.log_dir, self.p.config_dir)
 
         self.logger.info(vars(self.p))
@@ -601,6 +605,8 @@ class SemGCN(Model):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Retrofitting GCN')
 
+    parser.add_argument('-langdir', dest='lang_dir', default='./data', required=True,
+                        help='language data like voc2id and id corpus')
     parser.add_argument('-gpu', dest="gpu", default='0', help='GPU to use')
     parser.add_argument('-name', dest="name", default='test', help='Name of the run')
     parser.add_argument('-embed', dest="embed_loc", required=True, help='Embedding for initialization')
