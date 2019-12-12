@@ -75,29 +75,36 @@ acl     13
 - ginza
 
 #### 手順
-- hogehoge.pyで
+1. 対象コーパスから、単語-頻度ペアのcsvファイルを作成(以下voc2freq.csvと呼ぶ)
+  - 例えば、[これ](https://github.com/retrieva/word_embedding_adjuster/blob/master/src/alacarte/make_vocab_list.py)を使用すると作成できます。
+2. 以下のコマンドで、`voc2id.txt` と `id2freq.txt` を作成
+```
+$ python preproc.py -i /path/to/voc2freq.csv -o /path/to/outputdir -s <select_voc_size>
+```
+
+3. 以下のコマンドで、コーパスからSynGCNフォーマットのデータを作成
+  - コーパスは指定したフォルダ直下の全てのファイルが該当する前提です。
+```
+$ python make_syngcn_data.py -i /path/to/corpus/dir -v /path/to/voc2id.txt -f /path/to/id2freq.txt -o /path/to/outdir
+```
 
 
 ## SemGCN
 学習ずみのembeddingが必要です。embeddingのフォーマットは、gloveと同じで、単語と数値をスペース区切りとします。
 ### コーパス系データ
 SynGCNで使用した、 `voc2id.txt` と `id2freq.txt` が必要です。
+[手順](#手順)の1,2 を実行してください。
 ### シソーラスデータ
 特定のフォルダ(デフォルトは `./semantic_info`)以下に、関係単語ペア毎に、 `関係名.txt`を用意してください。
-`関係名.txt`は、スペース区切りで二単語ずつにしてください。
+`関係名.txt`は、スペース区切りで二単語ずつにしてください。(本家は、synonymだけ、なぜか2単語以上になってます。)
 - 例　
-  - 場所: `./semantic_info/synonyms.txt`
+  - 場所: `./semantic_info/antonyms.txt`
   - フォーマット
 ```
-fawn crawl
-reallocations re-allocations reassignments redeployments diversions overrides redistributions
-heavily-fortified strongly-fortified
-360.00 360
-1,800 1800 1.8 1.800 1-800
-1,802 1802
-sonja sonia
-gag muzzle joke reflex
-woods bretton wood timber forest bois drink lumber forests antlers
+deciphering encode
+accelerate slowing
+unite divided
+irritate soothe
 ```
 
 ## 評価
