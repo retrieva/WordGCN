@@ -73,27 +73,51 @@ acl     13
 #### 依存ライブラリ
 - spacy
 - ginza
+- MeCab
 
 #### 手順
-1. 対象コーパスから、単語-頻度ペアのcsvファイルを作成(以下voc2freq.csvと呼ぶ)
-  - 例えば、[これ](https://github.com/retrieva/word_embedding_adjuster/blob/master/src/alacarte/make_vocab_list.py)を使用すると作成できます。
+1. 以下のコマンドで、対象コーパス単語-頻度ペアのtxtファイルを作成(以下voc2freq.txtと呼ぶ)
+- コーパスがtxtの場合
+```
+$ python make_voc2freq.py -i /path/to/corpus/dir -o /path/to/voc2freq.txt -t <tokenizer name>
+```
+
+- コーパスがjsonlの場合
+```
+$ python make_voc2freq.py -i /path/to/corpus/dir -o /path/to/voc2freq.txt -t <tokenizer name> --format jsonl --text_fields <text field name at jsonl>
+```
+
+- 注意
+  - 依存構造解析に[ginza](https://megagonlabs.github.io/ginza/)を利用しています。そのため、mecabでtokenizeすると、SynGCNのデータにする際、tokenizeに齟齬が生じて、不完全なデータになる可能性が高くなります。
+    - ginzaのtokenizeは[sudachi](https://github.com/WorksApplications/SudachiPy)に依存しているため、mecabと齟齬が生じます。
+    - 依存構造解析にginzaを使う理由は、SynGCNはUniversal Dependencyに基づいて、依存構造解析をする必要があるからです。
+    - tokenizeはginzaの方が時間がかかります。(それでも、30分程度あれば、wikipedia全体を処理できます。)
+
 2. 以下のコマンドで、`voc2id.txt` と `id2freq.txt` を作成
 ```
-$ python preproc.py -i /path/to/voc2freq.csv -o /path/to/outputdir -s <select_voc_size>
+$ python preproc.py -i /path/to/voc2freq.txt -o /path/to/outputdir -s <select_voc_size>
 ```
 
 3. 以下のコマンドで、コーパスからSynGCNフォーマットのデータを作成
   - コーパスは指定したフォルダ直下の全てのファイルが該当する前提です。
+  - 全てのファイルのフォーマットは、平文のtxtファイルまたはjsonlとしてください。
+
+- txtの場合  
 ```
 $ python make_syngcn_data.py -i /path/to/corpus/dir -v /path/to/voc2id.txt -f /path/to/id2freq.txt -o /path/to/outdir
 ```
 
+- jsonlの場合
+```
+$ python make_syngcn_data.py -i /path/to/corpus/dir -v /path/to/voc2id.txt -f /path/to/id2freq.txt -o /path/to/outdir --text_field text --json
+```
+
 
 ## SemGCN
-学習ずみのembeddingが必要です。embeddingのフォーマットは、gloveと同じで、単語と数値をスペース区切りとします。
+学習済みのembeddingが必要です。embeddingのフォーマットは、gloveと同じで、単語と数値をスペース区切りとします。
 ### コーパス系データ
 SynGCNで使用した、 `voc2id.txt` と `id2freq.txt` が必要です。
-[手順](#手順)の1,2 を実行してください。
+それらのデータがない場合は、学習済embeddingを学習させたコーパスに対して、[手順](#手順)の1,2を実行してください。
 ### シソーラスデータ
 特定のフォルダ(デフォルトは `./semantic_info`)以下に、関係単語ペア毎に、 `関係名.txt`を用意してください。
 `関係名.txt`は、スペース区切りで二単語ずつにしてください。(本家は、synonymだけ、なぜか2単語以上になってます。)

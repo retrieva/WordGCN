@@ -1,5 +1,4 @@
 import argparse
-import csv
 from pathlib import Path
 
 
@@ -10,9 +9,12 @@ def main(args):
     id2freq = dict()
     vid = 0
     with voc2freq_file.open(mode='r') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            voc, freq = row
+        for line in f:
+            vf = line.strip().split()
+            if len(vf) < 2:
+                continue
+            freq = vf[-1]
+            voc = ' '.join(vf[:-1])
             voc2id[voc] = vid
             id2voc[vid] = voc
             id2freq[vid] = int(freq)
@@ -25,7 +27,7 @@ def main(args):
 
     voc2id_out = dict()
     id2freq_out = dict()
-    if args.voc_size:
+    if args.voc_size and len(voc2id) > args.voc_size:
         top_ids = sorted(list(id2freq.items()), key=lambda x: x[1], reverse=True)[:args.voc_size]
         for i, freq in top_ids:
             id2freq_out[i] = id2freq[i]
@@ -46,7 +48,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-i', dest='infile', help='input file')
+    parser.add_argument('-i', dest='infile', help='input file(voc2freq.txt)')
     parser.add_argument('-o', dest='outdir', help='output dir')
     parser.add_argument('-s', dest='voc_size', type=int, default=None,
                         help='top n frequent voc will be output')
