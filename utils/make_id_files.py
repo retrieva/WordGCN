@@ -4,10 +4,7 @@ from pathlib import Path
 
 def main(args):
     voc2freq_file = Path(args.infile)
-    voc2id = dict()
-    id2voc = dict()
-    id2freq = dict()
-    vid = 0
+    voc2freq = dict()
     with voc2freq_file.open(mode='r') as f:
         for line in f:
             vf = line.strip().split()
@@ -15,34 +12,30 @@ def main(args):
                 continue
             freq = vf[-1]
             voc = ' '.join(vf[:-1])
-            voc2id[voc] = vid
-            id2voc[vid] = voc
-            id2freq[vid] = int(freq)
-            vid += 1
+            voc2freq[voc] = freq
 
     output_dir = Path(args.outdir)
     output_dir.mkdir(parents=True, exist_ok=True)
     voc2id_file = output_dir / 'voc2id.txt'
     id2freq_file = output_dir / 'id2freq.txt'
 
-    voc2id_out = dict()
-    id2freq_out = dict()
-    if args.voc_size and len(voc2id) > args.voc_size:
-        top_ids = sorted(list(id2freq.items()), key=lambda x: x[1], reverse=True)[:args.voc_size]
-        for i, freq in top_ids:
-            id2freq_out[i] = id2freq[i]
-            voc2id_out[id2voc[i]] = i
+    voc2id = dict()
+    id2freq = dict()
+    if args.voc_size and len(voc2freq) > args.voc_size:
+        top_vocs = sorted(list(voc2freq.items()), key=lambda x: x[1], reverse=True)[:args.voc_size]
     else:
-        voc2id_out = voc2id
-        id2freq_out = id2freq
+        top_vocs = list(voc2freq.items())
+    for i, (voc, freq) in enumerate(top_vocs):
+        id2freq[i] = freq
+        voc2id[voc] = i
 
     with voc2id_file.open(mode='w') as f:
-        for v, i in voc2id_out.items():
-            print('{}\t{}'.format(v, str(i)), file=f)
+        for v, i in voc2id.items():
+            print('{}\t{}'.format(v, i), file=f)
 
     with id2freq_file.open(mode='w') as f:
-        for i, freq in id2freq_out.items():
-            print('{}\t{}'.format(str(i), str(freq)), file=f)
+        for i, freq in id2freq.items():
+            print('{}\t{}'.format(i, freq), file=f)
 
 
 if __name__ == "__main__":

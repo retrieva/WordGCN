@@ -30,7 +30,7 @@ class SynGCN(Model):
             elen:    Total number of edges in each sentence
             wlen:    Total number of words in each sentence
         """
-        self.lib.reset()
+        self.lib.reset(self.data_file_addr)
         while True:
             # max_len = 0; unused variable
             eph_ovr = self.lib.getBatch(self.edges_addr, self.wrds_addr, self.negs_addr, self.samp_addr, self.elen_addr,
@@ -63,15 +63,19 @@ class SynGCN(Model):
         """
         self.logger.info("Loading data")
 
-        self.voc2id = hp.read_mappings(f'{self.p.lang_dir}/voc2id.txt')
+        self.data_file = '{}/data.txt'.format(self.p.lang_dir)
+        self.voc2id_file = '{}/voc2id.txt'.format(self.p.lang_dir)
+        self.voc2id = hp.read_mappings(self.voc2id_file)
         self.voc2id = {k: int(v) for k, v in self.voc2id.items()}
-        self.id2freq = hp.read_mappings(f'{self.p.lang_dir}/id2freq.txt')
+        self.id2freq_file = '{}/id2freq.txt'.format(self.p.lang_dir)
+        self.id2freq = hp.read_mappings(self.id2freq_file)
         self.id2freq = {int(k): int(v) for k, v in self.id2freq.items()}
         self.id2voc = {v: k for k, v in self.voc2id.items()}
         self.vocab_size = len(self.voc2id)
         self.wrd_list = [self.id2voc[i] for i in range(self.vocab_size)]
 
-        self.de2id = hp.read_mappings(f'{self.p.lang_dir}/de2id.txt')
+        self.de2id_file = '{}/de2id.txt'.format(self.p.lang_dir)
+        self.de2id = hp.read_mappings(self.de2id_file)
         self.de2id = {k: int(v) for k, v in self.de2id.items()}
         self.num_deLabel = len(self.de2id)
 
@@ -87,7 +91,11 @@ class SynGCN(Model):
 
         # Loads the C++ code for making batches
         self.lib = ctypes.cdll.LoadLibrary('./batchGen.so')
-        self.lib.init()
+        self.voc2id_file_addr = ctypes.create_string_buffer(self.voc2id_file.encode('utf-8'))
+        self.id2freq_file_addr = ctypes.create_string_buffer(self.id2freq_file.encode('utf-8'))
+        self.de2id_file_addr = ctypes.create_string_buffer(self.de2id_file.encode('utf-8'))
+        self.data_file_addr = ctypes.create_string_buffer(self.data_file.encode('utf-8'))
+        self.lib.init(self.voc2id_file_addr, self.id2freq_file_addr, self.de2id_file_addr)
 
         # Creating pointers required for creating batches
         self.edges = np.zeros(self.p.max_dep_len * self.p.batch_size*3, dtype=np.int32)
@@ -141,6 +149,7 @@ class SynGCN(Model):
         -------
         Adjacency matrix shape=[Number of dependency labels, Batch size, seq_len, seq_len]
         """
+        
         num_edges = np.sum(batch['elen'])
         b_ind = np.expand_dims(np.repeat(np.arange(self.p.batch_size), batch['elen']), axis=1)
         e_ind = np.reshape(batch['edges'], [-1, 3])[:num_edges]

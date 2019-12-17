@@ -45,7 +45,7 @@ def save(voc2freq: Counter, output_file: Path):
     with output_file.open(mode='w') as f:
         for voc, freq in voc2freq.items():
             if voc:
-                print('{} {}'.format(voc, str(freq)), file=f)
+                print('{}\t{}'.format(voc, freq), file=f)
 
 
 def main(args):

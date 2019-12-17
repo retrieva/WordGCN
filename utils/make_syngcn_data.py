@@ -1,16 +1,18 @@
 import argparse
 import spacy
+import bisect
 from pathlib import Path
 from tqdm import tqdm
 from file_loader import Fileloader
 
 
 class Text2format:
-    def __init__(self, voc2id, id2freq):
+    def __init__(self, voc2id, id2freq, max_len):
         self.did = 0
         self.voc2id = voc2id
         self.id2freq = id2freq
         self.de2id = dict()
+        self.max_len = max_len
 
     def text2format(self, texts: list) -> list:
         nlp = spacy.load('ja_ginza')
@@ -20,25 +22,34 @@ class Text2format:
             if len(doc) < 2:
                 print("skip column because token length is less than 2")
                 continue
-            doc_info = [str(len(doc))]
+            elif len(doc) > self.max_len:
+                print("skip column because token length is larger than max_len:{}".format(self.max_len))
+                continue
+            doc_info = []
             token_ids = []
             token_deps = []
+            token_index_memorizer = []
             for token in doc:
                 if token.text not in self.voc2id:
+                    token_index_memorizer.append(token.i)
                     continue
 
                 token_ids.append(str(self.voc2id[token.text]))
 
-                if token.dep_ == "ROOT" or str(token.head) not in self.voc2id:
+            for token in doc:
+                if token.dep_ == "ROOT" or str(token.head) not in self.voc2id or str(token.text) not in self.voc2id:
                     if str(token.head) not in self.voc2id:
                         print(len(doc), token.i, token.text, token.head)
                     continue
                 if token.dep_ not in self.de2id:
                     self.de2id[token.dep_] = self.did
                     self.did += 1
-                dep = '{}|{}|{}'.format(token.head.i, token.i, self.de2id[token.dep_])
+                dep = '{}|{}|{}'.format(token_index_adjuster(token.head.i, token_index_memorizer),
+                                        token_index_adjuster(token.i, token_index_memorizer),
+                                        self.de2id[token.dep_])
                 token_deps.append(dep)
 
+            doc_info.append(str(len(token_ids)))
             doc_info.append(str(len(token_deps)))
             doc_info.extend(token_ids)
             doc_info.extend(token_deps)
@@ -55,6 +66,14 @@ class Text2format:
             output_all.extend(output)
 
         return output_all
+
+
+def token_index_adjuster(n: int, memorizer: list) -> int:
+    if not(memorizer):
+        return n
+    else:
+        minus = bisect.bisect_right(memorizer, n)
+        return n - minus
 
 
 def read_suppliment_file(voc2id_file: Path, id2freq_file: Path) -> (dict, dict):
@@ -96,11 +115,12 @@ def main(args):
     id2freq_file = Path(args.id2f)
     file_format = args.format
     text_fields = args.text_fields.strip().split(',')
+    max_len = args.max_len
     file_pathes = list(target_dir.glob("**/*"))
 
     voc2id, id2freq = read_suppliment_file(voc2id_file, id2freq_file)
 
-    formatter = Text2format(voc2id, id2freq)
+    formatter = Text2format(voc2id, id2freq, max_len)
     output = formatter.text2format_all(file_pathes, file_format, text_fields)
     save(output_dir, output, formatter)
 
@@ -113,5 +133,6 @@ if __name__ == "__main__":
     parser.add_argument('-o', dest='outdir', help="output file name")
     parser.add_argument('--format', default='txt', help="select file format txt or jsonl")
     parser.add_argument('--text_fields', help="set json's textfields as csv")
+    parser.add_argument('--max_len', default=80, type=int, help='set maximum length of a sentence')
     args = parser.parse_args()
     main(args)
