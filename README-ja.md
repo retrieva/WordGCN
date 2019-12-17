@@ -79,19 +79,21 @@ acl     13
 1. 以下のコマンドで、対象コーパス単語-頻度ペアのtxtファイルを作成(以下voc2freq.txtと呼ぶ)
 - コーパスがtxtの場合
 ```
-$ python make_voc2freq.py -i /path/to/corpus/dir -o /path/to/voc2freq.txt -t <tokenizer name>
+$ python make_voc2freq.py -i /path/to/corpus/dir -o /path/to/voc2freq.txt -t <tokenizer name> --maxlen <max token number in a sentence>
 ```
 
 - コーパスがjsonlの場合
 ```
-$ python make_voc2freq.py -i /path/to/corpus/dir -o /path/to/voc2freq.txt -t <tokenizer name> --format jsonl --text_fields <text field name at jsonl>
+$ python make_voc2freq.py -i /path/to/corpus/dir -o /path/to/voc2freq.txt -t <tokenizer name> --format jsonl --text_fields <text field name at jsonl> --max_len <max token number in a sentence>
 ```
 
 - 注意
   - 依存構造解析に[ginza](https://megagonlabs.github.io/ginza/)を利用しています。そのため、mecabでtokenizeすると、SynGCNのデータにする際、tokenizeに齟齬が生じて、不完全なデータになる可能性が高くなります。
     - ginzaのtokenizeは[sudachi](https://github.com/WorksApplications/SudachiPy)に依存しているため、mecabと齟齬が生じます。
     - 依存構造解析にginzaを使う理由は、SynGCNはUniversal Dependencyに基づいて、依存構造解析をする必要があるからです。
-    - tokenizeはginzaの方が時間がかかります。(それでも、30分程度あれば、wikipedia全体を処理できます。)
+    - tokenizeはginzaの方が時間がかかります。(それでも、10分程度あれば、wikipedia全体を処理できます。)
+  - syngcnを実行する際、ここで設定したmaxlenに揃えてください。最大長が合わず、エラーになります。
+  - max_lenが300までは動作を確認しています。
 
 2. 以下のコマンドで、`voc2id.txt` と `id2freq.txt` を作成
 ```
@@ -138,3 +140,8 @@ irritate soothe
 ### 手順
 ```
 $ evaluate.py -v2d /path/to/voc2id.txt -embed /path/to/embedding_file -embed_dim <dimmension number>
+```
+
+### 余談
+- sslで失敗するので[こちら](https://shinespark.hatenablog.com/entry/2015/12/06/100000)を参考にした。ややセキュリティー的に怪しいので、心配
+- numpyのversionの都合でめっちゃwarningでる。(vstackがdeplicateになるよ。みたいなやつ)
