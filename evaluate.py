@@ -1,11 +1,12 @@
 import argparse
 import numpy as np
 import helper as hp
+import ssl
 from web.embedding import Embedding
 from web.evaluate import evaluate_on_all
 
 
-def evaluate(embed_matrix: dict, voc2id: dict, logger) -> np.float:
+def evaluate(embed_matrix: dict, voc2id: dict) -> np.float:
     """
     Computes intrinsic scores for embeddings and dumps the embeddings embeddings
     Parameters
@@ -43,5 +44,6 @@ if __name__ == "__main__":
     parser.add_argument('-embed_dim', dest="embed_dim", default=300, type=int, help='Embedding Dimension')
 
     args = parser.parse_args()
+    ssl._create_default_https_context = ssl._create_unverified_context
 
     main(args)
