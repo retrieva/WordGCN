@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include <stdio.h>
 using namespace std;
 
 FILE *fin;
@@ -43,9 +44,12 @@ void InitUnigramTable() {
 }
 
 extern "C"
-void init(){
+void init(const char *voc2id_file,
+          const char *id2freq_file,
+		  const char *de2id_file
+	){
 	// Reading voc2id
-	fin = fopen("./data/voc2id.txt", "r");
+	fin = fopen(voc2id_file, "r");
 	while(fscanf(fin, "%s", word) == 1){
 		tmp = fscanf(fin, "%d\n", &wid);
 		voc2id[string(word)] = wid;
@@ -55,7 +59,7 @@ void init(){
 	voc_size = voc2id.size();
 
 	// Reading id2freq
-	fin = fopen("./data/id2freq.txt", "r");
+	fin = fopen(id2freq_file, "r");
 	while(fscanf(fin, "%d", &wid) == 1){
 		tmp = fscanf(fin, "%d\n", &freq);
 		id2freq[wid] = freq;
@@ -63,7 +67,7 @@ void init(){
 	}
 
 	// Reading de2id
-	fin = fopen("./data/de2id.txt", "r");
+	fin = fopen(de2id_file, "r");
 	while(fscanf(fin, "%s", word) == 1){
 		tmp = fscanf(fin, "%d\n", &wid);
 		de2id[word] = wid;
@@ -74,9 +78,9 @@ void init(){
 
 
 extern "C"
-void reset(){
+void reset(const char *data_file){
 	freq = 0;
-	fin  = fopen("./data/data.txt", "r");
+	fin  = fopen(data_file, "r");
 }
 
 int max_len = 0, cntxt_edge_label;
@@ -102,7 +106,6 @@ int getBatch(	int *edges, 		// Edges in the sentence graph
 		b_elen = 0, b_wlen = 0;								// Count of number of edges and word in particular element of batch
 
 		if(feof(fin)) return 1;
-
 
 		tmp = fscanf(fin, "%d %d", &num_wrds, &num_deps);
 
