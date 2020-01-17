@@ -93,7 +93,6 @@ $ python make_voc2freq.py -i /path/to/corpus/dir -o /path/to/voc2freq.txt -t <to
     - 依存構造解析にginzaを使う理由は、SynGCNはUniversal Dependencyに基づいて、依存構造解析をする必要があるからです。
     - tokenizeはginzaの方が時間がかかります。(それでも、10分程度あれば、wikipedia全体を処理できます。)
   - syngcnを実行する際、ここで設定したmaxlenに揃えてください。最大長が合わず、エラーになります。
-  - max_lenが300までは動作を確認しています。
 
 2. 以下のコマンドで、`voc2id.txt` と `id2freq.txt` を作成
 ```
