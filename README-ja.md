@@ -15,7 +15,7 @@ $ docker run --runtime=nvidia --rm nvidia/cuda nvidia-smi
 
 4.  tensorflowの実行を確認
 ```
-$ docker run --gpu all --runtime=nvidia -it --rm tensorflow/tensorflow:1.13.1-gpu-py3 \
+$ docker run --gpus all --runtime=nvidia -it --rm tensorflow/tensorflow:1.13.1-gpu-py3 \
        python -c "import tensorflow as tf; tf.enable_eager_execution(); print(tf.reduce_sum(tf.random_normal([1000, 1000])))" 
 ```
 
