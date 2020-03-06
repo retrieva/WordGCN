@@ -21,7 +21,7 @@ $ docker run --gpus all --runtime=nvidia -it --rm tensorflow/tensorflow:1.13.1-g
 
 5. セッション開始
 ```
-$ docker run --gpu all --runtime=nvidia -volume /path/to/this/repository:/path/in/docker -it tensorflow/tensorflow:1.13.1-gpu-py3 bash
+$ docker run --gpus all --runtime=nvidia --volume /path/to/this/repository:/path/in/docker -it tensorflow/tensorflow:1.13.1-gpu-py3 bash
 ```
 
 6. 必要ライブラリのインストール
