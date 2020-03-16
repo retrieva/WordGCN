@@ -96,7 +96,7 @@ $ python make_voc2freq.py -i /path/to/corpus/dir -o /path/to/voc2freq.txt -t <to
 
 2. 以下のコマンドで、`voc2id.txt` と `id2freq.txt` を作成
 ```
-$ python preproc.py -i /path/to/voc2freq.txt -o /path/to/outputdir -s <select_voc_size>
+$ python make_id_files.py -i /path/to/voc2freq.txt -o /path/to/outputdir -s <select_voc_size>
 ```
 
 3. 以下のコマンドで、コーパスからSynGCNフォーマットのデータを作成
